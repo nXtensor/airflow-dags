@@ -10,7 +10,7 @@ from airflow.decorators import dag, task
     catchup=False,
     tags=["example"],
 )
-def tutorial_taskflow_api():
+def parallel_dag():
     """
     ### TaskFlow API Tutorial Documentation
     This is a simple data pipeline example which demonstrates the use of
@@ -56,4 +56,4 @@ def tutorial_taskflow_api():
     order_data = extract()
     order_summary = transform(order_data)
     load(order_summary["total_order_value"])
-tutorial_taskflow_api()
+parallel_dag()
