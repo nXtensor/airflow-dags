@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from textwrap import dedent
 from airflow import DAG
 from airflow.operators.bash import BashOperator
-from airflow.operators import PostgresOperator
+from airflow.operators.postgres_operator import PostgresOperator
 with DAG(
     "basic",
     description="Postgres DAG",
