@@ -1,28 +1,80 @@
-from datetime import datetime, timedelta
-from textwrap import dedent
-from airflow import DAG
-from airflow.operators.bash import BashOperator
+import datetime as dt
+import pendulum
+import os
+import requests
+from airflow.decorators import dag, task
+from airflow.providers.postgres.hooks.postgres import PostgresHook
 from airflow.providers.postgres.operators.postgres import PostgresOperator
-with DAG(
-    "postgres_dag",
-    description="Postgres DAG",
-    schedule_interval=timedelta(days=1),
-    start_date=datetime(2021, 1, 1),
-    tags=["example"],
-    catchup=False,
-    default_args={"owner": "airflow",
-                  "email": ["n.tensor@gmail.com"],
-                  "email_on_failure": True,
-                  },
-) as dag:
-    t1 = BashOperator(
-        task_id="print_date",
-        bash_command="date",
-    )
-    t2 = PostgresOperator(
-        task_id="list_tables",
-        postgres_conn_id="postgres",
-        sql="SELECT * FROM pg_catalog.pg_tables;",  # list all tables
-    )
+from airflow.operators.python_operator import PythonOperator
 
-    t1 >> t2
+
+@dag(
+    dag_id="process_employees_dag",
+    schedule_interval="0 0 * * *",  # run at midnight every day
+    start_date=pendulum.datetime(2021, 1, 1, tz="UTC"),
+    catchup=False,
+    dagrun_timeout=dt.timedelta(minutes=60))
+def process_employees():
+    create_employee_table = PostgresOperator(
+        task_id="create_employee_table",
+        postgres_conn_id="postgres_dev",
+        sql="""
+            CREATE TABLE IF NOT EXISTS employees (
+                "Serial Number" NUMERIC PRIMARY KEY,
+                "Company Name" TEXT,
+                "Employee Markme" TEXT,
+                "Description" TEXT,
+                "Leave" INTEGER
+            );
+        """,)
+    create_employee_table.doc_md = """\Emplyee Table"""
+    create_employee_temp_table = PostgresOperator(
+        task_id="create_employee_temp_table",
+        postgres_conn_id="postgres_dev",
+        sql="""
+            DROP TABLE IF EXISTS employees_temp;
+            CREATE TABLE IF NOT EXISTS employees_temp (
+                "Serial Number" NUMERIC PRIMARY KEY,
+                "Company Name" TEXT,
+                "Employee Markme" TEXT,
+                "Description" TEXT,
+                "Leave" INTEGER
+            );
+        """,)
+    create_employee_temp_table.doc_md = """\Emplyee Temp Table to transform data before inserting into main table"""
+
+    @task()
+    def get_data():
+        data_path = "/opt/airflow/data/employees.csv"
+        os.makedirs(os.path.dirname(data_path), exist_ok=True)
+        url = "https://raw.githubusercontent.com/apache/airflow/main/docs/apache-airflow/tutorial/pipeline_example.csv"
+        response = requests.get(url)
+        with open(data_path, "w") as f:
+            f.write(response.text)
+
+        postgres_hook = PostgresHook(postgres_conn_id="postgres_dev")
+        postgres_hook.bulk_load(
+            "employees_temp", data_path, "postgres_dev", delimiter=",")
+        postgres_hook.close_conn()
+
+    @task()
+    def merge_data():
+        query = """
+            INSERT INTO employees
+            SELECT * FROM(SELECT DISTINCT * FROM employees_temp) t
+            ON CONFLICT ("Serial Number") DO UPDATE 
+            SET "Serial Number" = EXCLUDED."Serial Number";
+        """
+        try:
+            postgres_hook = PostgresHook(postgres_conn_id="postgres_dev")
+            postgres_hook.run(query)
+            postgres_hook.close_conn()
+        except Exception as e:
+            print(e)
+            raise Exception("Error while inserting data into table")
+            return 1
+
+    [create_employee_table, create_employee_temp_table] >> get_data() >> merge_data()
+
+
+dag = process_employees()
