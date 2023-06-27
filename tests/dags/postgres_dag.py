@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from textwrap import dedent
-from airflow.api import DAG
+from airflow import DAG
 from airflow.operators.bash import BashOperator
 from airflow.operators import PostgresOperator
 with DAG(
