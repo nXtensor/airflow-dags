@@ -23,7 +23,6 @@ with DAG(
         task_id="list_tables",
         postgres_conn_id="postgres",
         sql="SELECT * FROM pg_catalog.pg_tables;",  # list all tables
-        xcom_push=True,
     )
 
     t1 >> t2
