@@ -62,7 +62,6 @@ def process_employees():
         conn.commit()
         cur.close()
         conn.close()
-        postgres_hook.close_conn()
 
     @task()
     def merge_data():
@@ -75,7 +74,6 @@ def process_employees():
         try:
             postgres_hook = PostgresHook(postgres_conn_id="postgres_dev")
             postgres_hook.run(query)
-            postgres_hook.close_conn()
         except Exception as e:
             print(e)
             raise Exception("Error while inserting data into table")
