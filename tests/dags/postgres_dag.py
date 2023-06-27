@@ -53,8 +53,14 @@ def process_employees():
             f.write(response.text)
 
         postgres_hook = PostgresHook(postgres_conn_id="postgres_dev")
-        postgres_hook.bulk_load(
-            "employees_temp", data_path, "postgres_dev", delimiter=",")
+        conn = postgres_hook.get_conn()
+        cur = conn.cursor()
+        with open(data_path, "r") as f:
+            cur.copy_expert(
+                "COPY employees_temp FROM STDIN WITH CSV HEADER DELIMETER AS ',' QUOTE'\"'", f)
+        conn.commit()
+        cur.close()
+        conn.close()
         postgres_hook.close_conn()
 
     @task()
