@@ -16,7 +16,7 @@ from airflow.operators.python_operator import PythonOperator
     dagrun_timeout=dt.timedelta(minutes=60))
 def process_employees():
     create_tables = PostgresOperator(
-        task_id="create_employee_table",
+        task_id="create_tables",
         postgres_conn_id="postgres_dev",
         sql="""
             CREATE TABLE IF NOT EXISTS continent_map (
