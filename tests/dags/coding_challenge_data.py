@@ -50,7 +50,9 @@ def ingest_data():
         files_name = ["continent_map.csv", "continents.csv",
                       "countries.csv", "per_capita.csv"]
         for file_name in files_name:
+            print(file_name)
             table_name = file_name.split['.'][0]
+            print(table_name)
             data_path = f"/opt/airflow/data/{file_name}"
             os.makedirs(os.path.dirname(data_path), exist_ok=True)
             url = f"https://raw.githubusercontent.com/AlexanderConnelly/BrainTree_SQL_Coding_Challenge_Data_Analyst/master/data_csv/{file_name}"
