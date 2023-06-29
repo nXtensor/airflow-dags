@@ -50,6 +50,7 @@ def ingest_data():
         files_name = ["continent_map.csv", "continents.csv",
                       "countries.csv", "per_capita.csv"]
         for file_name in files_name:
+            table_name = file_name.split['.'][0]
             data_path = f"/opt/airflow/data/{file_name}"
             os.makedirs(os.path.dirname(data_path), exist_ok=True)
             url = f"https://raw.githubusercontent.com/AlexanderConnelly/BrainTree_SQL_Coding_Challenge_Data_Analyst/master/data_csv/{file_name}"
@@ -62,7 +63,7 @@ def ingest_data():
             cur = conn.cursor()
             with open(data_path, "r") as f:
                 cur.copy_expert(
-                    f"COPY {file_name.split['.'][0]} FROM STDIN WITH CSV HEADER DELIMITER AS ',' QUOTE '\"'", f,
+                    f"COPY {table_name} FROM STDIN WITH CSV HEADER DELIMITER AS ',' QUOTE '\"'", f,
                 )
             conn.commit()
             cur.close()
