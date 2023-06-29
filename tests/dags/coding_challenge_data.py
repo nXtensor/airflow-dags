@@ -67,7 +67,7 @@ def ingest_data():
             cur.close()
             conn.close()
 
-    create_tables >> get_data()
+    create_tables >> get_data
 
 
 dag = ingest_data()
