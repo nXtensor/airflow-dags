@@ -51,7 +51,7 @@ def ingest_data():
                       "countries.csv", "per_capita.csv"]
         for file_name in files_name:
             print(file_name)
-            table_name = file_name.split['.'][0]
+            table_name = file_name.replace(".csv", "")
             print(table_name)
             data_path = f"/opt/airflow/data/{file_name}"
             os.makedirs(os.path.dirname(data_path), exist_ok=True)
