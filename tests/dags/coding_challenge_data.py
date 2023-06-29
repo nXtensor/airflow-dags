@@ -20,22 +20,22 @@ def ingest_data():
         postgres_conn_id="postgres_dev",
         sql="""
             CREATE TABLE IF NOT EXISTS continent_map (
-                "id" SERIAL PRIMARY KEY,
+                "id" bigint DEFAULT nextval('integer_id_seq') PRIMARY KEY,
                 "country_code" TEXT,
                 "continent_code" TEXT
             );
             CREATE TABLE IF NOT EXISTS continents (
-               "id" SERIAL PRIMARY KEY,
+               "id" bigint DEFAULT nextval('integer_id_seq') PRIMARY KEY,
                 "continent_code" TEXT,
                 "continent_name" TEXT
             );
             CREATE TABLE IF NOT EXISTS countries (
-                "id" SERIAL PRIMARY KEY,
+                "id" bigint DEFAULT nextval('integer_id_seq') PRIMARY KEY,
                 "country_code" TEXT,
                 "country_name" TEXT
             );
             CREATE TABLE IF NOT EXISTS per_capita (
-                "id" SERIAL PRIMARY KEY,
+                "id" bigint DEFAULT nextval('integer_id_seq') PRIMARY KEY,
                 "country_code" TEXT,
                 "year" TEXT,
                 "gdp_per_capita" TEXT
