@@ -14,7 +14,7 @@ from airflow.operators.python_operator import PythonOperator
     start_date=pendulum.datetime(2021, 1, 1, tz="UTC"),
     catchup=False,
     dagrun_timeout=dt.timedelta(minutes=60))
-def process_employees():
+def ingest_data():
     create_tables = PostgresOperator(
         task_id="create_tables",
         postgres_conn_id="postgres_dev",
@@ -71,4 +71,4 @@ def process_employees():
     create_tables >> get_data()
 
 
-dag = process_employees()
+dag = ingest_data()
